@@ -1,6 +1,7 @@
 """LangChain Agent 学习项目 - CLI 入口 (流式输出版)"""
 
 import asyncio
+import logging
 import sys
 from rich.console import Console
 from rich.markdown import Markdown
@@ -12,6 +13,11 @@ from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
 
 from src.config import OPENAI_API_KEY, AMAP_API_KEY
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+)
 console = Console()
 
 MODES = {
