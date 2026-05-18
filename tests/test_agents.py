@@ -1,9 +1,9 @@
 """基础测试 - 不需要 API key 的单元测试"""
 
-import pytest
 from src.tools.calculator import calculator
 from src.tools.python_repl import python_repl
 from src.tools.file_ops import read_file, write_file
+import src.tools.file_ops as file_ops_module
 from src.rag.splitter import split_documents
 from langchain_core.documents import Document
 
@@ -30,19 +30,43 @@ class TestPythonREPL:
         result = python_repl.invoke({"code": "x = 1 + 1"})
         assert "no output" in result.lower()
 
+    def test_timeout_on_infinite_loop(self):
+        result = python_repl.invoke({"code": "while True: pass"})
+        assert "timed out" in result.lower()
+
+    def test_timeout_on_long_sleep(self):
+        result = python_repl.invoke({"code": "import time; time.sleep(30)"})
+        assert "timed out" in result.lower()
+
+    def test_error_shows_exception_type(self):
+        result = python_repl.invoke({"code": "1 / 0"})
+        assert "ZeroDivisionError" in result
+
 
 class TestFileOps:
-    def test_write_and_read(self, tmp_path):
+    def test_write_and_read(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(file_ops_module, "ALLOWED_ROOT", tmp_path)
         file_path = str(tmp_path / "test.txt")
-        write_result = write_file.invoke({"file_path": file_path, "content": "hello world"})
+        write_result = write_file.invoke(
+            {"file_path": file_path, "content": "hello world"}
+        )
         assert "success" in write_result.lower()
 
         read_result = read_file.invoke({"file_path": file_path})
         assert read_result == "hello world"
 
-    def test_read_nonexistent(self):
-        result = read_file.invoke({"file_path": "/nonexistent/file.txt"})
+    def test_read_nonexistent_in_allowed_dir(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(file_ops_module, "ALLOWED_ROOT", tmp_path)
+        result = read_file.invoke({"file_path": str(tmp_path / "nonexistent.txt")})
         assert "not found" in result.lower()
+
+    def test_read_outside_allowed_dir(self):
+        result = read_file.invoke({"file_path": "/etc/passwd"})
+        assert "access denied" in result.lower()
+
+    def test_write_outside_allowed_dir(self):
+        result = write_file.invoke({"file_path": "/tmp/hacked.txt", "content": "bad"})
+        assert "access denied" in result.lower()
 
 
 class TestSplitter:

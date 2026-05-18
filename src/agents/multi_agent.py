@@ -1,6 +1,6 @@
 import re
 from typing import Literal
-from langgraph.graph import MessagesState, StateGraph, END, START
+from langgraph.graph import MessagesState, StateGraph, START
 from langgraph.prebuilt import create_react_agent
 
 from src.agents.base import create_llm
@@ -22,6 +22,7 @@ def _make_worker(tools, prompt):
         agent = create_react_agent(model=cached_llm, tools=tools, prompt=prompt)
         result = agent.invoke(state)
         return {"messages": result["messages"]}
+
     return worker
 
 
@@ -36,7 +37,9 @@ _code_agent = _make_worker(
 )
 
 
-def _supervisor(state: MessagesState) -> Literal["research_agent", "code_agent", "__end__"]:
+def _supervisor(
+    state: MessagesState,
+) -> Literal["research_agent", "code_agent", "__end__"]:
     """Supervisor: reads the full conversation and decides the next step."""
     global _supervisor_llm
     if _supervisor_llm is None:
@@ -47,8 +50,11 @@ def _supervisor(state: MessagesState) -> Literal["research_agent", "code_agent",
         f"[{m.type}]: {m.content[:300]}" for m in messages if hasattr(m, "type")
     )
 
-    response = _supervisor_llm.invoke([
-        {"role": "system", "content": """You are a supervisor managing a team of agents:
+    response = _supervisor_llm.invoke(
+        [
+            {
+                "role": "system",
+                "content": """You are a supervisor managing a team of agents:
 - research_agent: searches the web for information
 - code_agent: writes and executes code, does calculations
 
@@ -60,15 +66,20 @@ Review the conversation so far. Decide what to do next:
 Be smart: if both research and code are needed, dispatch them in the right order.
 If a worker has already provided useful results, don't re-dispatch it unless needed.
 
-Respond with ONLY one word: research_agent, code_agent, or FINISH"""},
-        {"role": "user", "content": f"Original task: {messages[0].content}\n\nConversation so far:\n{conversation}"},
-    ])
+Respond with ONLY one word: research_agent, code_agent, or FINISH""",
+            },
+            {
+                "role": "user",
+                "content": f"Original task: {messages[0].content}\n\nConversation so far:\n{conversation}",
+            },
+        ]
+    )
 
     decision = response.content.strip().lower()
     # Use word-boundary match to avoid false positives like "I finished the research"
-    if re.search(r'\bfinish\b', decision):
+    if re.search(r"\bfinish\b", decision):
         return "__end__"
-    elif re.search(r'\bresearch\b', decision):
+    elif re.search(r"\bresearch\b", decision):
         return "research_agent"
     else:
         return "code_agent"

@@ -6,7 +6,6 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Prompt
-from rich.text import Text
 from rich.live import Live
 
 from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
@@ -115,7 +114,9 @@ def run_multi_agent():
     from src.agents.multi_agent import create_multi_agent
 
     agent = create_multi_agent()
-    console.print(Panel("多 Agent 协作已启动 (Supervisor 多轮调度 + 流式输出)", style="magenta"))
+    console.print(
+        Panel("多 Agent 协作已启动 (Supervisor 多轮调度 + 流式输出)", style="magenta")
+    )
     console.print("提出复杂任务，Supervisor 会反复调度 Worker Agent 直到完成。\n")
 
     while True:
@@ -133,22 +134,30 @@ def run_multi_agent():
             for node_name, output in event.items():
                 if node_name == "supervisor":
                     step += 1
-                    console.print(f"\n[bold yellow]━━ Step {step}: Supervisor deciding... ━━[/bold yellow]")
+                    console.print(
+                        f"\n[bold yellow]━━ Step {step}: Supervisor deciding... ━━[/bold yellow]"
+                    )
                     continue
 
                 # Worker node
-                label = "[research_agent]" if "research" in node_name else "[code_agent]"
+                label = (
+                    "[research_agent]" if "research" in node_name else "[code_agent]"
+                )
                 msgs = output.get("messages", [])
                 if not msgs:
                     continue
 
                 last_msg = msgs[-1]
-                content = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
+                content = (
+                    last_msg.content if hasattr(last_msg, "content") else str(last_msg)
+                )
 
                 # 显示工具调用过程
                 if hasattr(last_msg, "tool_calls") and last_msg.tool_calls:
                     for tc in last_msg.tool_calls:
-                        console.print(f"  [dim]🔧 Calling tool: {tc['name']}({tc['args']})[/dim]")
+                        console.print(
+                            f"  [dim]🔧 Calling tool: {tc['name']}({tc['args']})[/dim]"
+                        )
 
                 # 如果是工具返回结果
                 if isinstance(last_msg, ToolMessage):
@@ -157,14 +166,18 @@ def run_multi_agent():
 
                 # Agent 的最终回答 - 流式显示
                 if content:
-                    agent_label = "Research Agent" if "research" in node_name else "Code Agent"
+                    agent_label = (
+                        "Research Agent" if "research" in node_name else "Code Agent"
+                    )
                     console.print(f"\n[bold cyan]{agent_label} {label}:[/bold cyan]")
                     _stream_text(_iter_text(content), title=agent_label, style="dim")
                     final_content = content
 
-        console.print(f"\n[bold yellow]━━ Task Complete ━━[/bold yellow]")
+        console.print("\n[bold yellow]━━ Task Complete ━━[/bold yellow]")
         if final_content:
-            console.print(Panel(Markdown(final_content), title="Final Result", style="magenta"))
+            console.print(
+                Panel(Markdown(final_content), title="Final Result", style="magenta")
+            )
 
 
 # ─── 地图路线规划 (模式 4) ────────────────────────────────────────────
@@ -210,7 +223,9 @@ def _process_stream_chunk(msg, full_text: str, tool_calls_shown: set) -> str:
                 args_str = str(tc.get("args", ""))
                 if len(args_str) > 150:
                     args_str = args_str[:150] + "..."
-                full_text += f"\n[dim]🔧 Thinking: calling {tc['name']}({args_str})[/dim]\n"
+                full_text += (
+                    f"\n[dim]🔧 Thinking: calling {tc['name']}({args_str})[/dim]\n"
+                )
 
     if isinstance(msg, ToolMessage):
         result_preview = msg.content[:200] if len(msg.content) > 200 else msg.content

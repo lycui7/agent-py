@@ -25,11 +25,13 @@ def create_rag_chain(vectorstore):
     llm = create_llm(temperature=0)
     retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        MessagesPlaceholder("chat_history"),
-        ("human", "{input}"),
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", SYSTEM_PROMPT),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
 
     # retriever receives the "input" key, context is formatted and passed along
     chain = (
