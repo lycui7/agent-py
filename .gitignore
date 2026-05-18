@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+
+# Environment variables
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Pytest
+.pytest_cache/
+
+# ChromaDB (local vector store)
+chroma_db/
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
