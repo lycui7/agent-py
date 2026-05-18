@@ -1,6 +1,7 @@
 """地图路线规划 Agent — 通过高德地图 MCP 服务提供地图工具。"""
 
 import asyncio
+import logging
 from functools import wraps
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -9,6 +10,8 @@ from langgraph.prebuilt import create_react_agent
 
 from src.agents.base import create_llm
 from src.config import AMAP_API_KEY
+
+logger = logging.getLogger("agent")
 
 _loop = None
 
@@ -29,8 +32,14 @@ def _make_sync_tool(async_tool: StructuredTool) -> StructuredTool:
     def sync_wrapper(**kwargs):
         try:
             return _get_loop().run_until_complete(async_func(**kwargs))
+        except (ConnectionError, TimeoutError, OSError) as e:
+            logger.error(
+                "MCP tool %s network error: %s", async_tool.name, e, exc_info=True
+            )
+            return f"工具调用网络错误: {type(e).__name__}: {e}。请稍后重试。"
         except Exception as e:
-            return f"工具调用出错: {e}。请检查参数后重试。"
+            logger.error("MCP tool %s error: %s", async_tool.name, e, exc_info=True)
+            return f"工具调用出错: {type(e).__name__}: {e}。请检查参数后重试。"
 
     return StructuredTool.from_function(
         func=sync_wrapper,

@@ -1,5 +1,9 @@
+import logging
 from pathlib import Path
+
 from langchain_core.tools import tool
+
+logger = logging.getLogger("agent")
 
 # Only allow access to project directory and subdirectories
 ALLOWED_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -25,8 +29,10 @@ def read_file(file_path: str) -> str:
             return "File too large (>100KB). Please read a specific section."
         return path.read_text(encoding="utf-8")
     except PermissionError as e:
+        logger.warning("read_file denied: %s", e)
         return str(e)
-    except Exception as e:
+    except (OSError, UnicodeDecodeError) as e:
+        logger.error("read_file error for %r: %s", file_path, e, exc_info=True)
         return f"Read error: {type(e).__name__}: {e}"
 
 
@@ -39,6 +45,8 @@ def write_file(file_path: str, content: str) -> str:
         path.write_text(content, encoding="utf-8")
         return f"Successfully wrote to {file_path}"
     except PermissionError as e:
+        logger.warning("write_file denied: %s", e)
         return str(e)
-    except Exception as e:
+    except OSError as e:
+        logger.error("write_file error for %r: %s", file_path, e, exc_info=True)
         return f"Write error: {type(e).__name__}: {e}"

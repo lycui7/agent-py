@@ -1,10 +1,13 @@
 """基础测试 - 不需要 API key 的单元测试"""
 
+from unittest.mock import patch
+
 from src.tools.calculator import calculator
 from src.tools.python_repl import python_repl
 from src.tools.file_ops import read_file, write_file
 import src.tools.file_ops as file_ops_module
 from src.rag.splitter import split_documents
+from src.utils.retry import retry_with_backoff
 from langchain_core.documents import Document
 
 
@@ -75,3 +78,53 @@ class TestSplitter:
         chunks = split_documents(docs, chunk_size=500, chunk_overlap=50)
         assert len(chunks) > 1
         assert all(len(c.page_content) <= 550 for c in chunks)
+
+
+class TestRetry:
+    def test_success_on_first_try(self):
+        call_count = 0
+
+        @retry_with_backoff(max_retries=3, base_delay=0.01)
+        def succeed():
+            nonlocal call_count
+            call_count += 1
+            return "ok"
+
+        assert succeed() == "ok"
+        assert call_count == 1
+
+    @patch("src.utils.retry.time.sleep")
+    def test_retry_on_connection_error(self, mock_sleep):
+        call_count = 0
+
+        @retry_with_backoff(max_retries=3, base_delay=0.01)
+        def flaky():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                raise ConnectionError("network down")
+            return "ok"
+
+        assert flaky() == "ok"
+        assert call_count == 3
+
+    @patch("src.utils.retry.time.sleep")
+    def test_fail_after_max_retries(self, mock_sleep):
+        @retry_with_backoff(max_retries=2, base_delay=0.01)
+        def always_fail():
+            raise TimeoutError("timeout")
+
+        import pytest
+
+        with pytest.raises(TimeoutError):
+            always_fail()
+
+    def test_no_retry_on_unexpected_exception(self):
+        @retry_with_backoff(max_retries=3, base_delay=0.01)
+        def value_error():
+            raise ValueError("bad value")
+
+        import pytest
+
+        with pytest.raises(ValueError):
+            value_error()

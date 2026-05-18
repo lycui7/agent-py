@@ -1,8 +1,11 @@
+import logging
+
 from src.rag.loader import load_file
 from src.rag.splitter import split_documents
 from src.rag.vectorstore import create_vectorstore, add_documents
 from src.rag.chain import create_rag_chain
 
+logger = logging.getLogger("agent")
 
 MAX_HISTORY_TURNS = 10
 
@@ -14,7 +17,7 @@ class RAGAgent:
     1. Load documents from files
     2. Split into chunks
     3. Embed and store in Chroma vector DB
-    4. On query: retrieve relevant chunks → generate answer
+    4. On query: retrieve relevant chunks -> generate answer
 
     Usage:
         agent = RAGAgent()
@@ -32,17 +35,17 @@ class RAGAgent:
 
         If a vectorstore already exists, appends to it (won't overwrite).
         """
+        logger.info("Loading document: %s", file_path)
         docs = load_file(file_path)
         chunks = split_documents(docs)
 
         if self.vectorstore is not None:
-            # 已有向量库，追加文档
             add_documents(self.vectorstore, chunks)
         else:
-            # 首次加载，创建新向量库
             self.vectorstore = create_vectorstore(chunks, collection_name)
             self.chain = create_rag_chain(self.vectorstore)
 
+        logger.info("Loaded %d chunks from %s", len(chunks), file_path)
         return len(chunks)
 
     def ask(self, question: str) -> str:
@@ -50,6 +53,7 @@ class RAGAgent:
         if not self.chain:
             return "No documents loaded. Please load a document first using load_document()."
 
+        logger.info("RAG query: %r", question[:100])
         answer = self.chain.invoke(
             {
                 "input": question,
@@ -58,7 +62,7 @@ class RAGAgent:
         )
 
         self._append_history(question, answer)
-
+        logger.debug("RAG answer: %r", str(answer)[:200])
         return answer
 
     def stream_ask(self, question: str):
