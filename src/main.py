@@ -6,7 +6,6 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Prompt
-from rich.text import Text
 from rich.live import Live
 
 from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
@@ -162,7 +161,7 @@ def run_multi_agent():
                     _stream_text(_iter_text(content), title=agent_label, style="dim")
                     final_content = content
 
-        console.print(f"\n[bold yellow]━━ Task Complete ━━[/bold yellow]")
+        console.print("\n[bold yellow]━━ Task Complete ━━[/bold yellow]")
         if final_content:
             console.print(Panel(Markdown(final_content), title="Final Result", style="magenta"))
 

@@ -1,6 +1,6 @@
 from src.rag.loader import load_file
 from src.rag.splitter import split_documents
-from src.rag.vectorstore import create_vectorstore, add_documents, get_vectorstore
+from src.rag.vectorstore import create_vectorstore, add_documents
 from src.rag.chain import create_rag_chain
 
 

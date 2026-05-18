@@ -1,7 +1,7 @@
 from typing import Any, Iterator
 from langchain_openai import ChatOpenAI
 from langchain_openai.chat_models.base import _handle_openai_bad_request, _handle_openai_api_error
-from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
+from langchain_core.messages import AIMessageChunk, BaseMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.outputs import ChatGenerationChunk
 

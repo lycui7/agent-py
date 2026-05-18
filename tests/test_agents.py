@@ -1,9 +1,8 @@
 """基础测试 - 不需要 API key 的单元测试"""
 
-import pytest
 from src.tools.calculator import calculator
 from src.tools.python_repl import python_repl
-from src.tools.file_ops import read_file, write_file, ALLOWED_ROOT
+from src.tools.file_ops import read_file, write_file
 import src.tools.file_ops as file_ops_module
 from src.rag.splitter import split_documents
 from langchain_core.documents import Document
