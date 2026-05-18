@@ -43,12 +43,14 @@ def _make_sync_tool(async_tool: StructuredTool) -> StructuredTool:
 
 async def _get_mcp_tools():
     """Connect to Amap MCP server and get available tools."""
-    client = MultiServerMCPClient({
-        "amap": {
-            "url": f"https://mcp.amap.com/mcp?key={AMAP_API_KEY}",
-            "transport": "streamable_http",
+    client = MultiServerMCPClient(
+        {
+            "amap": {
+                "url": f"https://mcp.amap.com/mcp?key={AMAP_API_KEY}",
+                "transport": "streamable_http",
+            }
         }
-    })
+    )
     raw_tools = await client.get_tools()
     return [_make_sync_tool(t) for t in raw_tools]
 

@@ -1,11 +1,20 @@
 from typing import Any, Iterator
 from langchain_openai import ChatOpenAI
-from langchain_openai.chat_models.base import _handle_openai_bad_request, _handle_openai_api_error
+from langchain_openai.chat_models.base import (
+    _handle_openai_bad_request,
+    _handle_openai_api_error,
+)
 from langchain_core.messages import AIMessageChunk, BaseMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.outputs import ChatGenerationChunk
 
-from src.config import OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, TEMPERATURE, MAX_TOKENS
+from src.config import (
+    OPENAI_API_KEY,
+    OPENAI_BASE_URL,
+    OPENAI_MODEL,
+    TEMPERATURE,
+    MAX_TOKENS,
+)
 
 # Global store: maps tool_call_id → reasoning_content from the previous response
 _reasoning_store: dict[str, str] = {}
@@ -76,7 +85,7 @@ class ReasoningCaptureChatOpenAI(ChatOpenAI):
                         if rc:
                             accumulated_reasoning += rc
                         # Collect tool_call ids
-                        for tc in (delta.get("tool_calls") or []):
+                        for tc in delta.get("tool_calls") or []:
                             tc_id = tc.get("id")
                             if tc_id and tc_id not in accumulated_tool_call_ids:
                                 accumulated_tool_call_ids.append(tc_id)

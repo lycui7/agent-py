@@ -50,10 +50,12 @@ class RAGAgent:
         if not self.chain:
             return "No documents loaded. Please load a document first using load_document()."
 
-        answer = self.chain.invoke({
-            "input": question,
-            "chat_history": self.chat_history,
-        })
+        answer = self.chain.invoke(
+            {
+                "input": question,
+                "chat_history": self.chat_history,
+            }
+        )
 
         self._append_history(question, answer)
 
@@ -66,10 +68,12 @@ class RAGAgent:
             return
 
         full_answer = ""
-        for token in self.chain.stream({
-            "input": question,
-            "chat_history": self.chat_history,
-        }):
+        for token in self.chain.stream(
+            {
+                "input": question,
+                "chat_history": self.chat_history,
+            }
+        ):
             full_answer += token
             yield token
 

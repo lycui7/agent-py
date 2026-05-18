@@ -8,9 +8,7 @@ def calculator(expression: str) -> str:
 
     Examples: "2 + 3 * 4", "sqrt(144)", "sin(pi/2)", "log(100)"
     """
-    allowed_names = {
-        k: v for k, v in math.__dict__.items() if not k.startswith("_")
-    }
+    allowed_names = {k: v for k, v in math.__dict__.items() if not k.startswith("_")}
     allowed_names.update({"abs": abs, "round": round})
 
     try:

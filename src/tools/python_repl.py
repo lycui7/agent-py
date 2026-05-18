@@ -14,7 +14,9 @@ def _run_code(code: str, result_queue: multiprocessing.Queue):
         with contextlib.redirect_stdout(output):
             exec(code, namespace)
         result = output.getvalue()
-        result_queue.put(("ok", result if result else "Code executed successfully (no output)."))
+        result_queue.put(
+            ("ok", result if result else "Code executed successfully (no output).")
+        )
     except Exception as e:
         result_queue.put(("error", f"{type(e).__name__}: {e}"))
 

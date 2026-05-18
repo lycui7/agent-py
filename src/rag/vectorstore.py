@@ -19,7 +19,9 @@ def get_embeddings() -> HuggingFaceEmbeddings:
     return _embeddings_instance
 
 
-def create_vectorstore(documents: list[Document], collection_name: str = "default") -> Chroma:
+def create_vectorstore(
+    documents: list[Document], collection_name: str = "default"
+) -> Chroma:
     """Create a new Chroma vectorstore from documents."""
     return Chroma.from_documents(
         documents=documents,

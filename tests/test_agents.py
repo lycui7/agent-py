@@ -47,7 +47,9 @@ class TestFileOps:
     def test_write_and_read(self, tmp_path, monkeypatch):
         monkeypatch.setattr(file_ops_module, "ALLOWED_ROOT", tmp_path)
         file_path = str(tmp_path / "test.txt")
-        write_result = write_file.invoke({"file_path": file_path, "content": "hello world"})
+        write_result = write_file.invoke(
+            {"file_path": file_path, "content": "hello world"}
+        )
         assert "success" in write_result.lower()
 
         read_result = read_file.invoke({"file_path": file_path})
