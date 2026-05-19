@@ -217,6 +217,7 @@ class TestRAGAgent:
 
     def test_clear_history(self):
         agent = self._make_agent()
-        agent.chat_history = [("human", "q"), ("ai", "a")]
+        agent.memory.add_message("human", "q")
+        agent.memory.add_message("ai", "a")
         agent.clear_history()
         assert agent.chat_history == []

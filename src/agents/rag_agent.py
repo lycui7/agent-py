@@ -4,6 +4,7 @@ from src.rag.loader import load_file
 from src.rag.splitter import split_documents
 from src.rag.vectorstore import create_vectorstore, add_documents
 from src.rag.chain import create_rag_chain
+from src.memory.short_term import ShortTermMemory
 
 logger = logging.getLogger("agent")
 
@@ -19,16 +20,18 @@ class RAGAgent:
     3. Embed and store in Chroma vector DB
     4. On query: retrieve relevant chunks -> generate answer
 
-    Usage:
-        agent = RAGAgent()
-        agent.load_document("path/to/file.md")
-        answer = agent.ask("What is this document about?")
+    Uses ShortTermMemory for chat history management.
     """
 
     def __init__(self):
         self.vectorstore = None
         self.chain = None
-        self.chat_history: list = []
+        self.memory = ShortTermMemory(max_turns=MAX_HISTORY_TURNS)
+
+    @property
+    def chat_history(self) -> list:
+        """Backward-compatible access to chat history as tuples."""
+        return self.memory.get_tuples()
 
     def load_document(self, file_path: str, collection_name: str = "default"):
         """Load a document into the vector store.
@@ -57,7 +60,7 @@ class RAGAgent:
         answer = self.chain.invoke(
             {
                 "input": question,
-                "chat_history": self.chat_history,
+                "chat_history": self.memory.get_tuples(),
             }
         )
 
@@ -75,7 +78,7 @@ class RAGAgent:
         for token in self.chain.stream(
             {
                 "input": question,
-                "chat_history": self.chat_history,
+                "chat_history": self.memory.get_tuples(),
             }
         ):
             full_answer += token
@@ -84,11 +87,8 @@ class RAGAgent:
         self._append_history(question, full_answer)
 
     def _append_history(self, question: str, answer: str):
-        self.chat_history.append(("human", question))
-        self.chat_history.append(("ai", answer))
-        max_messages = MAX_HISTORY_TURNS * 2
-        if len(self.chat_history) > max_messages:
-            self.chat_history = self.chat_history[-max_messages:]
+        self.memory.add_message("human", question)
+        self.memory.add_message("ai", answer)
 
     def clear_history(self):
-        self.chat_history.clear()
+        self.memory.clear()

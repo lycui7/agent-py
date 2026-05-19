@@ -98,7 +98,7 @@ def run_rag_agent():
                 console.print(f"[red]Error: {e}[/red]")
             continue
 
-        if handle_command(user_input):
+        if handle_command(user_input, agent=rag):
             return
 
         if not rag.chain:
@@ -293,8 +293,12 @@ def _iter_text(text: str):
 # ─── 通用 ────────────────────────────────────────────────────────────
 
 
-def handle_command(user_input: str) -> bool:
-    """Handle special commands. Returns True if the caller should return."""
+def handle_command(user_input: str, agent=None) -> bool:
+    """Handle special commands. Returns True if the caller should return.
+
+    Args:
+        agent: Optional agent with a clear_history() method.
+    """
     cmd = user_input.strip().lower()
     if cmd == "/quit":
         console.print("[dim]Goodbye![/dim]")
@@ -302,6 +306,8 @@ def handle_command(user_input: str) -> bool:
     if cmd == "/switch":
         return True
     if cmd == "/clear":
+        if agent and hasattr(agent, "clear_history"):
+            agent.clear_history()
         console.print("[green]Memory cleared.[/green]")
         return False
     return False
