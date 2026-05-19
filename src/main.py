@@ -1,7 +1,6 @@
 """LangChain Agent 学习项目 - CLI 入口 (流式输出版)"""
 
 import asyncio
-import logging
 import sys
 from rich.console import Console
 from rich.markdown import Markdown
@@ -12,12 +11,9 @@ from rich.live import Live
 from langchain_core.messages import HumanMessage, AIMessageChunk, ToolMessage
 
 from src.config import OPENAI_API_KEY, AMAP_API_KEY
+from src.utils.logger import setup_logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-)
+setup_logging()
 console = Console()
 
 MODES = {
@@ -102,7 +98,7 @@ def run_rag_agent():
                 console.print(f"[red]Error: {e}[/red]")
             continue
 
-        if handle_command(user_input):
+        if handle_command(user_input, agent=rag):
             return
 
         if not rag.chain:
@@ -297,8 +293,12 @@ def _iter_text(text: str):
 # ─── 通用 ────────────────────────────────────────────────────────────
 
 
-def handle_command(user_input: str) -> bool:
-    """Handle special commands. Returns True if the caller should return."""
+def handle_command(user_input: str, agent=None) -> bool:
+    """Handle special commands. Returns True if the caller should return.
+
+    Args:
+        agent: Optional agent with a clear_history() method.
+    """
     cmd = user_input.strip().lower()
     if cmd == "/quit":
         console.print("[dim]Goodbye![/dim]")
@@ -306,6 +306,8 @@ def handle_command(user_input: str) -> bool:
     if cmd == "/switch":
         return True
     if cmd == "/clear":
+        if agent and hasattr(agent, "clear_history"):
+            agent.clear_history()
         console.print("[green]Memory cleared.[/green]")
         return False
     return False

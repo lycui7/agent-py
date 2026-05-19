@@ -17,6 +17,9 @@ AMAP_API_KEY = os.getenv("AMAP_API_KEY", "")
 # Chroma 配置
 CHROMA_PERSIST_DIR = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
 
+# 日志级别 (DEBUG / INFO / WARNING / ERROR)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
 # Agent 配置
 MAX_TOKENS = 4096
 TEMPERATURE = 0.7
