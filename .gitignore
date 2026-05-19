@@ -22,6 +22,9 @@ build/
 # ChromaDB (local vector store)
 chroma_db/
 
+# Logs
+logs/
+
 # Claude Code
 .claude/
 
